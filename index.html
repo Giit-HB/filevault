@@ -346,25 +346,74 @@
         }
 
         .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             text-align: center;
             padding: 40px;
             color: #6b7280;
         }
 
         .loading-spinner {
+            position: relative;
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(59, 130, 246, 0.3);
-            border-radius: 50%;
-            border-top-color: #3b82f6;
-            animation: spin 1s ease-in-out infinite;
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            background: conic-gradient(
+                from 0deg,
+                #3b82f6,
+                #22c55e,
+                #a855f7,
+                #f97316,
+                #3b82f6
+            );
+            animation: spinner-rotate 0.9s linear infinite;
             margin-right: 8px;
             vertical-align: middle;
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .loading-spinner::before {
+            content: '';
+            position: absolute;
+            inset: 6px;
+            border-radius: inherit;
+            background: #ffffff;
+        }
+
+        .loading-spinner::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #3b82f6;
+            box-shadow:
+                -12px 0 0 #a855f7,
+                12px 0 0 #22c55e;
+            transform: translate(-50%, -50%);
+            animation: spinner-pulse 0.9s ease-in-out infinite alternate;
+        }
+
+        @keyframes spinner-rotate {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spinner-pulse {
+            from {
+                transform: translate(-50%, -50%) scale(0.9);
+                opacity: 0.8;
+            }
+            to {
+                transform: translate(-50%, -50%) scale(1.15);
+                opacity: 1;
+            }
         }
 
         .file-size {
@@ -482,7 +531,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="logo">
+        <div class="logo" onclick="loadFolders()" title="Go to Home" role="button" tabindex="0" style="cursor:pointer;" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();loadFolders();}">
             📚 FileVault
         </div>
         <div>
