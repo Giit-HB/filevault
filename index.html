@@ -32,7 +32,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 36px;
+            font-size: 32px;
             font-weight: bold;
             color: #1e40af;
         }
@@ -494,7 +494,7 @@
     <div class="container">
         <div class="title-section">
             <h2>Explore File Base</h2>
-            <p class="subtitle">Access file materials organized by Divy. </p>
+            <p class="subtitle">Access file materials organized by me. </p>
         </div>
 
         <div id="adminControls" class="admin-controls">
@@ -1017,19 +1017,11 @@
                     
                     for (const item of data) {
                         if (item.id) {
-                            // It's a file - get its size
-                            try {
-                                const filePath = path ? `${path}/${item.name}` : item.name;
-                                // FIXED: using supabaseClient
-                                const { data: fileData } = await supabaseClient.storage
-                                    .from(BUCKET_NAME)
-                                    .download(filePath);
-                                if (fileData) {
-                                    totalSize += fileData.size;
-                                }
-                            } catch (err) {
-                                console.warn('Could not get size for:', item.name);
-                            }
+                            // It's a file - add its size from metadata (no download)
+                            const sizeFromMetadata = item.metadata && typeof item.metadata.size !== 'undefined'
+                                ? Number(item.metadata.size) || 0
+                                : 0;
+                            totalSize += sizeFromMetadata;
                         } else if (item.name !== '.placeholder') {
                             const folderPath = path ? `${path}/${item.name}` : item.name;
                             await getAllFiles(folderPath);
@@ -1050,20 +1042,16 @@
         async function displayFolderContents(folderName, folders, files) {
             const grid = document.getElementById('foldersGrid');
             
-            const filesWithSizes = await Promise.all(files.map(async (file) => {
-                try {
-                    // FIXED: using supabaseClient
-                    const { data: fileData } = await supabaseClient.storage
-                        .from(BUCKET_NAME)
-                        .download(`${folderName}/${file.name}`);
-                    return { 
-                        ...file, 
-                        displaySize: fileData ? fileData.size : 0 
-                    };
-                } catch (error) {
-                    return { ...file, displaySize: 0 };
-                }
-            }));
+            // Use lightweight metadata for size instead of downloading full file
+            const filesWithSizes = files.map((file) => {
+                const sizeFromMetadata = file.metadata && typeof file.metadata.size !== 'undefined'
+                    ? Number(file.metadata.size) || 0
+                    : 0;
+                return {
+                    ...file,
+                    displaySize: sizeFromMetadata
+                };
+            });
 
             const foldersWithCounts = await Promise.all(folders.map(async (folder) => {
                 try {
